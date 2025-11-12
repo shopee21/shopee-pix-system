@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sacola da Shopee em branco -->
+  <path d="M150 70C150 63.37 144.63 58 138 58H62C55.37 58 50 63.37 50 70V160C50 166.63 55.37 172 62 172H138C144.63 172 150 166.63 150 160V70Z" fill="white"/>
+  
+  <!-- Alças da sacola -->
+  <path d="M75 58V50C75 39.51 83.51 31 94 31H106C116.49 31 125 39.51 125 50V58" stroke="white" stroke-width="8" stroke-linecap="round" fill="none"/>
+  
+  <!-- Letra S estilizada da Shopee -->
+  <path d="M100 85C90 85 82 93 82 103C82 108 84 112 87 115C90 118 110 128 110 128C113 130 115 133 115 137C115 142 111 146 106 146C101 146 97 142 97 137M103 85C113 85 121 93 121 103C121 108 119 112 116 115C113 118 93 128 93 128C90 130 88 133 88 137C88 142 92 146 97 146C102 146 106 142 106 137" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+</svg>
