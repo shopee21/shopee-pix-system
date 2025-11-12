@@ -262,11 +262,12 @@ const ShopeePixPayment = () => {
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-xl p-2.5 shadow-lg">
-              <svg className="w-10 h-10" viewBox="0 0 1024 1024" fill="none">
-                <rect width="1024" height="1024" rx="200" fill="#EE4D2D"/>
-                <path d="M512 200C400 200 310 290 310 402C310 514 400 604 512 604C624 604 714 514 714 402C714 290 624 200 512 200ZM512 824C350 824 220 750 220 660C220 620 250 582 300 555C360 520 430 500 512 500C594 500 664 520 724 555C774 582 804 620 804 660C804 750 674 824 512 824Z" fill="white"/>
-              </svg>
+            <div className="bg-white rounded-2xl p-2.5 shadow-lg">
+              <img 
+                src="/shopee-logo.png" 
+                alt="Shopee Logo" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Shopee Pay</h1>
