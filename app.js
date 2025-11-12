@@ -1,6 +1,5 @@
 const { useState, useEffect } = React;
 
-// Configuração da API - detecta automaticamente o ambiente
 const getAPIUrl = () => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3000/api';
@@ -11,7 +10,6 @@ const getAPIUrl = () => {
 const API_URL = getAPIUrl();
 console.log('🔍 API_URL:', API_URL);
 
-// Ícones SVG
 const CopyIcon = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -498,7 +496,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                             </svg>
                           </div>
                           <p className="text-sm text-gray-700 font-semibold">Clique para fazer upload da imagem do QR Code</p>
-                          <p className="text-xs text-gray-500">PNG, JPG até 5MB • Será gerado automaticamente se não enviar</p>
+                          <p className="text-xs text-gray-500">PNG, JPG até 5MB</p>
                         </>
                       )}
                     </label>
@@ -506,4 +504,94 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button onClick={handleSubmit} disabled={loading} className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-lg font-bold hover:from-orange-600 hover:to-red-600
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-lg font-bold hover:from-orange-600 hover:to-red-600 transition shadow-lg disabled:opacity-50"
+                >
+                  {loading ? 'Salvando...' : 'Salvar Pagamento'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setFormData({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '' });
+                  }}
+                  className="bg-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-400 transition"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="space-y-3">
+            {payments.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 font-medium">Nenhum pagamento cadastrado</p>
+                <p className="text-gray-400 text-sm mt-1">Clique em "Novo Pagamento" para começar</p>
+              </div>
+            ) : (
+              payments.map((payment) => (
+                <div key={payment._id} className="bg-white border-2 border-gray-200 rounded-xl p-5 flex items-center justify-between hover:border-orange-300 hover:shadow-md transition">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={payment.qrCodeUrl}
+                      alt="QR Code"
+                      className="w-20 h-20 rounded-lg border-2 border-orange-200"
+                    />
+                    <div>
+                      <p className="font-bold text-xl text-orange-600">
+                        {formatCurrency(payment.valor)}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        📅 Vence: {formatVencimento(payment.vencimento)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2 font-mono bg-gray-50 px-2 py-1 rounded">
+                        {payment.pixCode.substring(0, 35)}...
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setFormData({
+                          id: payment._id,
+                          valor: payment.valor,
+                          pixCode: payment.pixCode,
+                          vencimento: payment.vencimento,
+                          qrCodeImage: payment.qrCodeUrl
+                        });
+                        setShowForm(true);
+                      }}
+                      className="p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Editar"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => deletePayment(payment._id)}
+                      className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Excluir"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.render(<ShopeePixPayment />, document.getElementById('root'));
