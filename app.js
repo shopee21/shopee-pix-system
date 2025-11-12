@@ -41,15 +41,6 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-// Logo Shopee Oficial
-const ShopeeLogo = () => (
-  <svg className="w-10 h-10" viewBox="0 0 192 192" fill="none">
-    <path d="M97 16L25 48v56c0 43.5 30 84 72 94 42-10 72-50.5 72-94V48l-72-32z" fill="#EE4D2D"/>
-    <path d="M97 34L37 60v48c0 36 24.5 69 60 77.5 35.5-8.5 60-41.5 60-77.5V60l-60-26z" fill="#fff"/>
-    <path d="M82 90l-8 8 20 20 40-40-8-8-32 32-12-12z" fill="#EE4D2D"/>
-  </svg>
-);
-
 // Ícone PIX Oficial do Banco Central
 const PixIcon = () => (
   <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
@@ -276,7 +267,11 @@ const ShopeePixPayment = () => {
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="bg-white rounded-xl p-2.5 shadow-lg">
-              <ShopeeLogo />
+              <img 
+                src="/shopee-logo.png" 
+                alt="Shopee Logo" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Shopee Pay</h1>
