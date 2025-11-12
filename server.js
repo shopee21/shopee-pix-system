@@ -11,10 +11,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'shopee-secret-key-2024';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://shopee:Bm220832@cluster0.ziacita.mongodb.net/shopee-pix?retryWrites=true&w=majority&appName=Cluster0';
 
 // MIDDLEWARES
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
-
-// SERVIR ARQUIVOS ESTÁTICOS - IMPORTANTE!
 app.use(express.static(path.join(__dirname)));
 
 // CONECTAR AO MONGODB
@@ -60,10 +62,14 @@ async function createDefaultAdmin() {
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('shopee2024', 10);
       await User.create({ username: 'admin', password: hashedPassword });
-      console.log('✅ ADMIN CRIADO: admin / shopee2024');
+      console.log('✅ ADMIN CRIADO');
+      console.log('   Usuário: admin');
+      console.log('   Senha: shopee2024');
+    } else {
+      console.log('ℹ️  Admin já existe');
     }
   } catch (error) {
-    console.error('Erro ao criar admin:', error);
+    console.error('❌ Erro ao criar admin:', error);
   }
 }
 
@@ -77,7 +83,7 @@ mongoose.connection.once('open', () => {
 app.get('/api/status', (req, res) => {
   res.json({ 
     status: 'online', 
-    message: 'API funcionando!',
+    message: 'API Shopee Pix funcionando!',
     timestamp: new Date().toISOString()
   });
 });
@@ -85,17 +91,39 @@ app.get('/api/status', (req, res) => {
 // Login
 app.post('/api/login', async (req, res) => {
   try {
+    console.log('🔐 Tentativa de login recebida');
+    console.log('📦 Body:', req.body);
+    
     const { username, password } = req.body;
+    
+    if (!username || !password) {
+      console.log('❌ Dados incompletos');
+      return res.status(400).json({ message: 'Usuário e senha são obrigatórios' });
+    }
+    
     const user = await User.findOne({ username });
-    if (!user) return res.status(401).json({ message: 'Usuário ou senha incorretos' });
+    console.log('👤 Usuário encontrado:', user ? 'Sim' : 'Não');
+    
+    if (!user) {
+      console.log('❌ Usuário não encontrado');
+      return res.status(401).json({ message: 'Usuário ou senha incorretos' });
+    }
     
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(401).json({ message: 'Usuário ou senha incorretos' });
+    console.log('🔑 Senha válida:', validPassword ? 'Sim' : 'Não');
+    
+    if (!validPassword) {
+      console.log('❌ Senha incorreta');
+      return res.status(401).json({ message: 'Usuário ou senha incorretos' });
+    }
     
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+    console.log('✅ Login bem-sucedido!');
+    
     res.json({ token, message: 'Login realizado com sucesso' });
   } catch (error) {
-    res.status(500).json({ message: 'Erro no servidor' });
+    console.error('❌ Erro no login:', error);
+    res.status(500).json({ message: 'Erro no servidor', error: error.message });
   }
 });
 
@@ -119,8 +147,10 @@ app.post('/api/payments', authenticateToken, async (req, res) => {
   try {
     const { valor, pixCode, vencimento, qrCodeUrl } = req.body;
     const payment = await Payment.create({ valor, pixCode, vencimento, qrCodeUrl });
+    console.log('✅ Pagamento criado:', payment._id);
     res.status(201).json(payment);
   } catch (error) {
+    console.error('❌ Erro ao criar pagamento:', error);
     res.status(500).json({ message: 'Erro ao criar pagamento' });
   }
 });
@@ -136,8 +166,10 @@ app.put('/api/payments/:id', authenticateToken, async (req, res) => {
       { new: true }
     );
     if (!payment) return res.status(404).json({ message: 'Pagamento não encontrado' });
+    console.log('✅ Pagamento atualizado:', id);
     res.json(payment);
   } catch (error) {
+    console.error('❌ Erro ao atualizar pagamento:', error);
     res.status(500).json({ message: 'Erro ao atualizar pagamento' });
   }
 });
@@ -148,27 +180,25 @@ app.delete('/api/payments/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const payment = await Payment.findByIdAndDelete(id);
     if (!payment) return res.status(404).json({ message: 'Pagamento não encontrado' });
+    console.log('✅ Pagamento deletado:', id);
     res.json({ message: 'Pagamento deletado com sucesso' });
   } catch (error) {
+    console.error('❌ Erro ao deletar pagamento:', error);
     res.status(500).json({ message: 'Erro ao deletar pagamento' });
   }
 });
 
 // ==================== ROTAS HTML ====================
 
-// Página principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Página de pagamento
 app.get('/pagamento', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Catch-all para qualquer outra rota
 app.get('*', (req, res) => {
-  // Se não é rota de API, envia o index.html
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'index.html'));
   } else {
@@ -185,5 +215,7 @@ app.listen(PORT, () => {
   console.log('');
   console.log(`📡 Porta: ${PORT}`);
   console.log(`🔐 Admin: /pagamento#admin`);
+  console.log(`👤 Usuário: admin`);
+  console.log(`🔑 Senha: shopee2024`);
   console.log('');
 });
