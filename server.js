@@ -33,11 +33,15 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
+// SCHEMA ATUALIZADO - Adicionados os novos campos
 const PaymentSchema = new mongoose.Schema({
   valor: { type: Number, required: true },
   pixCode: { type: String, required: true },
   vencimento: { type: Date, required: true },
   qrCodeUrl: { type: String, required: true },
+  nomeProduto: { type: String, default: '' },      // NOVO
+  nomePagador: { type: String, default: '' },      // NOVO
+  cpfPagador: { type: String, default: '' },       // NOVO
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -142,11 +146,19 @@ app.get('/api/payments', async (req, res) => {
   }
 });
 
-// Criar pagamento
+// Criar pagamento - ATUALIZADO com novos campos
 app.post('/api/payments', authenticateToken, async (req, res) => {
   try {
-    const { valor, pixCode, vencimento, qrCodeUrl } = req.body;
-    const payment = await Payment.create({ valor, pixCode, vencimento, qrCodeUrl });
+    const { valor, pixCode, vencimento, qrCodeUrl, nomeProduto, nomePagador, cpfPagador } = req.body;
+    const payment = await Payment.create({ 
+      valor, 
+      pixCode, 
+      vencimento, 
+      qrCodeUrl,
+      nomeProduto: nomeProduto || '',
+      nomePagador: nomePagador || '',
+      cpfPagador: cpfPagador || ''
+    });
     console.log('✅ Pagamento criado:', payment._id);
     res.status(201).json(payment);
   } catch (error) {
@@ -155,14 +167,22 @@ app.post('/api/payments', authenticateToken, async (req, res) => {
   }
 });
 
-// Atualizar pagamento
+// Atualizar pagamento - ATUALIZADO com novos campos
 app.put('/api/payments/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { valor, pixCode, vencimento, qrCodeUrl } = req.body;
+    const { valor, pixCode, vencimento, qrCodeUrl, nomeProduto, nomePagador, cpfPagador } = req.body;
     const payment = await Payment.findByIdAndUpdate(
       id, 
-      { valor, pixCode, vencimento, qrCodeUrl }, 
+      { 
+        valor, 
+        pixCode, 
+        vencimento, 
+        qrCodeUrl,
+        nomeProduto: nomeProduto || '',
+        nomePagador: nomePagador || '',
+        cpfPagador: cpfPagador || ''
+      }, 
       { new: true }
     );
     if (!payment) return res.status(404).json({ message: 'Pagamento não encontrado' });

