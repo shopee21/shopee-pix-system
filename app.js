@@ -270,7 +270,7 @@ const ShopeePixPayment = () => {
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-16 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl shadow-lg overflow-hidden bg-white p-2 flex items-center justify-center">
               <img 
                 src="/shopee-logo.png" 
                 alt="Shopee Logo" 
