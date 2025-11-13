@@ -41,6 +41,14 @@ const EyeOffIcon = () => (
   </svg>
 );
 
+const ShopeeIcon = () => (
+  <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
+    <path d="M24 4L6 14V34L24 44L42 34V14L24 4Z" fill="#EE4D2D"/>
+    <path d="M24 8L10 16V32L24 40L38 32V16L24 8Z" fill="#FF6839"/>
+    <path d="M24 28C27.3137 28 30 25.3137 30 22C30 18.6863 27.3137 16 24 16C20.6863 16 18 18.6863 18 22C18 25.3137 20.6863 28 24 28Z" fill="white"/>
+  </svg>
+);
+
 const ShopeePixPayment = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -262,15 +270,12 @@ const ShopeePixPayment = () => {
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden bg-white p-1.5 flex items-center justify-center">
+            <div className="w-12 h-12 flex items-center justify-center">
               <img 
-                src="./shopee-logo.png" 
+                src="/shopee-logo.png" 
                 alt="Shopee Logo" 
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23EE4D2D"/><text x="50" y="70" font-size="60" font-weight="bold" text-anchor="middle" fill="white" font-family="Arial">S</text></svg>';
-                }}
+                style={{filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.2))'}}
               />
             </div>
             <div>
@@ -310,16 +315,7 @@ const ShopeePixPayment = () => {
 
             <div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <img 
-                  src="./pix-logo.png" 
-                  alt="Pix" 
-                  className="w-8 h-8 object-contain" 
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'inline-block';
-                  }} 
-                />
-                <svg className="w-8 h-8" style={{display: 'none'}} viewBox="0 0 512 512" fill="none">
+                <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
                   <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.6 391.5 392.6 391.5H407.7L310.6 488.6C280.3 518.1 231.1 518.1 200.8 488.6L103.3 391.1H112.6C132.6 391.1 151.5 383.3 165.7 369.1L242.4 292.5zM262.5 219.5C257.1 224.9 247.8 224.9 242.4 219.5L165.7 142.8C151.5 128.6 132.6 120.8 112.6 120.8H103.3L200.7 23.4C231 -6.9 280.3-6.9 310.6 23.4L407.7 120.5H392.6C372.6 120.5 353.7 128.3 339.5 142.5L262.5 219.5zM112.6 142.8C126.4 142.8 139.1 148.3 149.7 158.1L226.4 234.8C233.6 242 245.6 242 252.8 234.8L329.5 158.1C340.1 148.3 353.4 142.8 367.2 142.8H391.7L439 190.1C464.5 215.6 464.5 255.4 439 280.9L391.7 328.2H367.2C353.4 328.2 340.1 322.7 329.5 312.9L252.8 236.2C245.6 229 233.6 229 226.4 236.2L149.7 312.9C139.1 322.7 126.4 328.2 112.6 328.2H88.1L40.8 280.9C15.3 255.4 15.3 215.6 40.8 190.1L88.1 142.8H112.6z" fill="#32BCAD"/>
                 </svg>
                 <span className="font-semibold text-base">Pix</span>
