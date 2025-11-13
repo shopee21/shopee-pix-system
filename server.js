@@ -33,15 +33,15 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
-// SCHEMA ATUALIZADO - Adicionados os novos campos
+// SCHEMA ATUALIZADO COM NOVOS CAMPOS
 const PaymentSchema = new mongoose.Schema({
   valor: { type: Number, required: true },
   pixCode: { type: String, required: true },
   vencimento: { type: Date, required: true },
   qrCodeUrl: { type: String, required: true },
-  nomeProduto: { type: String, default: '' },      // NOVO
-  nomePagador: { type: String, default: '' },      // NOVO
-  cpfPagador: { type: String, default: '' },       // NOVO
+  nomeProduto: { type: String, default: '' },
+  nomePagador: { type: String, default: '' },
+  cpfPagador: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -95,34 +95,25 @@ app.get('/api/status', (req, res) => {
 // Login
 app.post('/api/login', async (req, res) => {
   try {
-    console.log('🔐 Tentativa de login recebida');
-    console.log('📦 Body:', req.body);
-    
     const { username, password } = req.body;
     
     if (!username || !password) {
-      console.log('❌ Dados incompletos');
       return res.status(400).json({ message: 'Usuário e senha são obrigatórios' });
     }
     
     const user = await User.findOne({ username });
-    console.log('👤 Usuário encontrado:', user ? 'Sim' : 'Não');
     
     if (!user) {
-      console.log('❌ Usuário não encontrado');
       return res.status(401).json({ message: 'Usuário ou senha incorretos' });
     }
     
     const validPassword = await bcrypt.compare(password, user.password);
-    console.log('🔑 Senha válida:', validPassword ? 'Sim' : 'Não');
     
     if (!validPassword) {
-      console.log('❌ Senha incorreta');
       return res.status(401).json({ message: 'Usuário ou senha incorretos' });
     }
     
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
-    console.log('✅ Login bem-sucedido!');
     
     res.json({ token, message: 'Login realizado com sucesso' });
   } catch (error) {
@@ -146,7 +137,7 @@ app.get('/api/payments', async (req, res) => {
   }
 });
 
-// Criar pagamento - ATUALIZADO com novos campos
+// Criar pagamento - COM NOVOS CAMPOS
 app.post('/api/payments', authenticateToken, async (req, res) => {
   try {
     const { valor, pixCode, vencimento, qrCodeUrl, nomeProduto, nomePagador, cpfPagador } = req.body;
@@ -167,7 +158,7 @@ app.post('/api/payments', authenticateToken, async (req, res) => {
   }
 });
 
-// Atualizar pagamento - ATUALIZADO com novos campos
+// Atualizar pagamento - COM NOVOS CAMPOS
 app.put('/api/payments/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -229,9 +220,9 @@ app.get('*', (req, res) => {
 // INICIAR SERVIDOR
 app.listen(PORT, () => {
   console.log('');
-  console.log('╔═══════════════════════════════════╗');
+  console.log('╔═══════════════════════════════╗');
   console.log('║  🚀 SERVIDOR SHOPEE PIX ONLINE    ║');
-  console.log('╚═══════════════════════════════════╝');
+  console.log('╚═══════════════════════════════╝');
   console.log('');
   console.log(`📡 Porta: ${PORT}`);
   console.log(`🔐 Admin: /pagamento#admin`);
