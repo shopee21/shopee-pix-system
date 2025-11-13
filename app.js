@@ -181,95 +181,25 @@ const EyeOffIcon = () => (
   };// TELA DE LOGIN
   if (showLogin && !isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-orange-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl mb-4 shadow-lg">
-              <LockIcon />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Área Administrativa</h1>
-            <p className="text-gray-600">Acesso restrito aos administradores</p>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Usuário</label>
-              <input
-                type="text"
-                value={loginData.username}
-                onChange={(e) => setLoginData({...loginData, username: e.target.value})}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition"
-                placeholder="Digite seu usuário"
-                disabled={loading}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={loginData.password}
-                  onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition pr-12"
-                  placeholder="Digite sua senha"
-                  disabled={loading}
-                />
-                <button
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  type="button"
-                >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                </button>
-              </div>
-            </div>
-            {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {loginError}
-              </div>
-            )}
-            <button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-bold text-lg hover:from-orange-600 hover:to-red-600 transition shadow-lg disabled:opacity-50"
-            >
-              {loading ? 'Entrando...' : 'Entrar'}
-            </button>
-            <button
-              onClick={() => { setShowLogin(false); window.location.hash = ''; }}
-              className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
-            >
-              Voltar para Pagamentos
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isAdmin) {
-    return <AdminPanel onLogout={handleLogout} authToken={authToken} loadPayments={loadPayments} />;
-  }// TELA DO CLIENTE (PAGAMENTO) - COM HEADER CORRIGIDO
-  return (
     <div className="min-h-screen bg-gray-100">
+      {/* HEADER COM LOGO CORRIGIDA */}
       <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 shadow-lg">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden bg-white flex items-center justify-center">
+            {/* Container da Logo */}
+            <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden bg-white p-1.5 flex items-center justify-center">
               <img 
-                src="shopee-logo.png" 
+                src="./shopee-logo.png" 
                 alt="Shopee Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-full h-full object-contain"
                 onError={(e) => {
-                  e.target.style.display = 'none';
-                  const fallback = document.createElement('div');
-                  fallback.className = 'w-10 h-10 bg-orange-500 rounded flex items-center justify-center text-white font-bold text-lg';
-                  fallback.textContent = 'S';
-                  e.target.parentNode.appendChild(fallback);
+                  // Se a imagem não carregar, mostra o fallback
+                  e.target.onerror = null;
+                  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23EE4D2D"/><text x="50" y="70" font-size="60" font-weight="bold" text-anchor="middle" fill="white" font-family="Arial">S</text></svg>';
                 }}
               />
             </div>
+            {/* Texto ao lado da logo */}
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">Shopee Pay</h1>
               <p className="text-xs text-orange-100">Pagamento Seguro</p>
@@ -277,6 +207,8 @@ const EyeOffIcon = () => (
           </div>
         </div>
       </div>
+
+      {/* RESTO DO CONTEÚDO */}
       <div className="max-w-lg mx-auto p-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden mt-4">
           <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
@@ -303,12 +235,19 @@ const EyeOffIcon = () => (
                 <p className="text-xs text-gray-600 mb-1">Produto</p>
                 <p className="text-sm font-semibold text-gray-800">{currentPayment.nomeProduto}</p>
               </div>
-            )}<div className="mb-5">
+            )}
+
+            <div className="mb-5">
               <div className="flex items-center gap-2 mb-3">
-                <img src="pix-logo.png" alt="Pix" className="w-8 h-8 object-contain" onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'inline-block';
-                }} />
+                <img 
+                  src="./pix-logo.png" 
+                  alt="Pix" 
+                  className="w-8 h-8 object-contain" 
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'inline-block';
+                  }} 
+                />
                 <svg className="w-8 h-8" style={{display: 'none'}} viewBox="0 0 512 512" fill="none">
                   <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.6 391.5 392.6 391.5H407.7L310.6 488.6C280.3 518.1 231.1 518.1 200.8 488.6L103.3 391.1H112.6C132.6 391.1 151.5 383.3 165.7 369.1L242.4 292.5zM262.5 219.5C257.1 224.9 247.8 224.9 242.4 219.5L165.7 142.8C151.5 128.6 132.6 120.8 112.6 120.8H103.3L200.7 23.4C231 -6.9 280.3-6.9 310.6 23.4L407.7 120.5H392.6C372.6 120.5 353.7 128.3 339.5 142.5L262.5 219.5zM112.6 142.8C126.4 142.8 139.1 148.3 149.7 158.1L226.4 234.8C233.6 242 245.6 242 252.8 234.8L329.5 158.1C340.1 148.3 353.4 142.8 367.2 142.8H391.7L439 190.1C464.5 215.6 464.5 255.4 439 280.9L391.7 328.2H367.2C353.4 328.2 340.1 322.7 329.5 312.9L252.8 236.2C245.6 229 233.6 229 226.4 236.2L149.7 312.9C139.1 322.7 126.4 328.2 112.6 328.2H88.1L40.8 280.9C15.3 255.4 15.3 215.6 40.8 190.1L88.1 142.8H112.6z" fill="#32BCAD"/>
                 </svg>
@@ -348,7 +287,8 @@ const EyeOffIcon = () => (
               >
                 {copied ? (<><CheckIcon />Código Copiado!</>) : (<><CopyIcon />Copiar Código Pix</>)}
               </button>
-            </div><div className="bg-gray-50 rounded-lg p-4 mb-4">
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <p className="font-semibold text-gray-800 text-sm mb-3">Por favor, siga as instruções:</p>
               <div className="space-y-2.5">
                 <div className="flex gap-2 items-start">
