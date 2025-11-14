@@ -47,6 +47,9 @@ const PaymentSchema = new mongoose.Schema({
 
 const Payment = mongoose.model('Payment', PaymentSchema);
 
+// ARMAZENAR EVENTOS DE CÓPIA (em memória)
+let copyEvents = [];
+
 // MIDDLEWARE DE AUTENTICAÇÃO
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -127,6 +130,8 @@ app.get('/api/verify-token', authenticateToken, (req, res) => {
   res.json({ valid: true, user: req.user });
 });
 
+// ==================== ROTAS DE PAGAMENTOS ====================
+
 // Listar pagamentos
 app.get('/api/payments', async (req, res) => {
   try {
@@ -199,6 +204,67 @@ app.delete('/api/payments/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// ==================== ROTAS DE NOTIFICAÇÕES ====================
+
+// Registrar quando o código Pix é copiado
+app.post('/api/copy-event', async (req, res) => {
+  try {
+    const { paymentId, timestamp } = req.body;
+    
+    const event = {
+      paymentId,
+      timestamp: timestamp || new Date().toISOString(),
+      id: Date.now()
+    };
+    
+    copyEvents.push(event);
+    
+    // Manter apenas os últimos 100 eventos
+    if (copyEvents.length > 100) {
+      copyEvents = copyEvents.slice(-100);
+    }
+    
+    console.log('🔔 Código Pix copiado - Payment ID:', paymentId);
+    res.json({ success: true, event });
+  } catch (error) {
+    console.error('❌ Erro ao registrar cópia:', error);
+    res.status(500).json({ message: 'Erro ao registrar evento' });
+  }
+});
+
+// Buscar eventos de cópia (protegida)
+app.get('/api/copy-events', authenticateToken, (req, res) => {
+  try {
+    res.json(copyEvents);
+  } catch (error) {
+    console.error('❌ Erro ao buscar eventos:', error);
+    res.status(500).json({ message: 'Erro ao buscar eventos' });
+  }
+});
+
+// Limpar notificação específica
+app.delete('/api/copy-events/:id', authenticateToken, (req, res) => {
+  try {
+    const { id } = req.params;
+    copyEvents = copyEvents.filter(e => e.id !== parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Erro ao remover evento:', error);
+    res.status(500).json({ message: 'Erro ao remover evento' });
+  }
+});
+
+// Limpar todas as notificações
+app.delete('/api/copy-events', authenticateToken, (req, res) => {
+  try {
+    copyEvents = [];
+    res.json({ success: true, message: 'Todas notificações removidas' });
+  } catch (error) {
+    console.error('❌ Erro ao limpar eventos:', error);
+    res.status(500).json({ message: 'Erro ao limpar eventos' });
+  }
+});
+
 // ==================== ROTAS HTML ====================
 
 app.get('/', (req, res) => {
@@ -220,13 +286,14 @@ app.get('*', (req, res) => {
 // INICIAR SERVIDOR
 app.listen(PORT, () => {
   console.log('');
-  console.log('╔═══════════════════════════════╗');
+  console.log('╔══════════════════════════════╗');
   console.log('║  🚀 SERVIDOR SHOPEE PIX ONLINE    ║');
-  console.log('╚═══════════════════════════════╝');
+  console.log('╚══════════════════════════════╝');
   console.log('');
   console.log(`📡 Porta: ${PORT}`);
   console.log(`🔐 Admin: /pagamento#admin`);
   console.log(`👤 Usuário: admin`);
   console.log(`🔑 Senha: shopee2024`);
+  console.log(`🔔 Notificações: ATIVAS`);
   console.log('');
 });

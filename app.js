@@ -41,14 +41,6 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-const ShopeeIcon = () => (
-  <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
-    <path d="M24 4L6 14V34L24 44L42 34V14L24 4Z" fill="#EE4D2D"/>
-    <path d="M24 8L10 16V32L24 40L38 32V16L24 8Z" fill="#FF6839"/>
-    <path d="M24 28C27.3137 28 30 25.3137 30 22C30 18.6863 27.3137 16 24 16C20.6863 16 18 18.6863 18 22C18 25.3137 20.6863 28 24 28Z" fill="white"/>
-  </svg>
-);
-
 const ShopeePixPayment = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -156,10 +148,25 @@ const ShopeePixPayment = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
+  // FUNÇÃO ATUALIZADA - Registra evento de cópia
+  const copyToClipboard = async (text) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    
+    // Registrar evento de cópia no servidor
+    try {
+      await fetch(`${API_URL}/copy-event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: currentPayment?._id,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.error('Erro ao registrar cópia:', error);
+    }
   };
 
   const formatCurrency = (value) => {
@@ -188,9 +195,7 @@ const ShopeePixPayment = () => {
     if (!cpf) return '';
     const numbers = cpf.replace(/\D/g, '');
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };
-
-  // TELA DE LOGIN
+  };// TELA DE LOGIN
   if (showLogin && !isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-100 via-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -384,9 +389,7 @@ const ShopeePixPayment = () => {
       </div>
     </div>
   );
-};
-
-// ADMIN PANEL COMPONENT
+};// ADMIN PANEL COMPONENT COM NOTIFICAÇÕES
 const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
   const [payments, setPayments] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -401,8 +404,34 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
     nomePagador: '', 
     cpfPagador: '' 
   });
+  
+  // NOVOS ESTADOS PARA NOTIFICAÇÕES
+  const [copyEvents, setCopyEvents] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => { fetchPayments(); }, []);
+  
+  // BUSCAR EVENTOS DE CÓPIA A CADA 5 SEGUNDOS
+  useEffect(() => {
+    if (!authToken) return;
+    
+    const fetchCopyEvents = async () => {
+      try {
+        const response = await fetch(`${API_URL}/copy-events`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await response.json();
+        if (response.ok) setCopyEvents(data);
+      } catch (error) {
+        console.error('Erro ao buscar eventos:', error);
+      }
+    };
+    
+    fetchCopyEvents();
+    const interval = setInterval(fetchCopyEvents, 5000);
+    
+    return () => clearInterval(interval);
+  }, [authToken]);
 
   const fetchPayments = async () => {
     try {
@@ -413,6 +442,32 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
       if (response.ok) setPayments(data);
     } catch (error) {
       console.error('Erro ao buscar pagamentos:', error);
+    }
+  };
+  
+  // MARCAR NOTIFICAÇÃO COMO LIDA
+  const markAsRead = async (eventId) => {
+    try {
+      await fetch(`${API_URL}/copy-events/${eventId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      setCopyEvents(prev => prev.filter(e => e.id !== eventId));
+    } catch (error) {
+      console.error('Erro ao remover evento:', error);
+    }
+  };
+  
+  // LIMPAR TODAS AS NOTIFICAÇÕES
+  const clearAllNotifications = async () => {
+    try {
+      await fetch(`${API_URL}/copy-events`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      setCopyEvents([]);
+    } catch (error) {
+      console.error('Erro ao limpar notificações:', error);
     }
   };
 
@@ -511,10 +566,10 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
     if (value.length <= 11) {
       setFormData({...formData, cpfPagador: value});
     }
-  };
-
+  };// RENDER DO ADMIN PANEL COM NOTIFICAÇÕES
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
+      {/* HEADER COM BOTÃO DE NOTIFICAÇÕES */}
       <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 shadow-lg">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -524,15 +579,121 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
               <p className="text-xs text-orange-100">Shopee Pay Manager</p>
             </div>
           </div>
-          <button onClick={onLogout} className="bg-white text-orange-500 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition">Sair</button>
+          
+          <div className="flex items-center gap-3">
+            {/* BOTÃO DE NOTIFICAÇÕES */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative bg-white/20 backdrop-blur hover:bg-white/30 p-3 rounded-lg transition"
+                title="Notificações de códigos copiados"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                
+                {copyEvents.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                    {copyEvents.length}
+                  </span>
+                )}
+              </button>
+              
+              {/* DROPDOWN DE NOTIFICAÇÕES */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border-2 border-orange-200 z-50 max-h-96 overflow-y-auto">
+                  <div className="p-3 border-b border-gray-200 bg-orange-50">
+                    <h3 className="font-bold text-gray-800 text-sm">🔔 Códigos Pix Copiados</h3>
+                    <p className="text-xs text-gray-600">Clientes que copiaram o código</p>
+                  </div>
+                  
+                  {copyEvents.length === 0 ? (
+                    <div className="p-6 text-center text-gray-400">
+                      <p className="text-sm">Nenhuma notificação</p>
+                      <p className="text-xs mt-1">Aguardando clientes copiarem códigos...</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {copyEvents.slice().reverse().map((event) => {
+                        const payment = payments.find(p => p._id === event.paymentId);
+                        const timeAgo = new Date(event.timestamp).toLocaleString('pt-BR');
+                        
+                        return (
+                          <div key={event.id} className="p-3 hover:bg-gray-50 transition">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-green-500 font-bold text-lg">✓</span>
+                                  <p className="font-semibold text-gray-800 text-sm">Código Copiado!</p>
+                                </div>
+                                
+                                {payment ? (
+                                  <div className="text-xs text-gray-600 mb-1">
+                                    <p className="font-medium text-orange-600">
+                                      💰 {formatCurrency(payment.valor)}
+                                    </p>
+                                    {payment.nomeProduto && (
+                                      <p className="text-gray-500">📦 {payment.nomeProduto}</p>
+                                    )}
+                                    {payment.nomePagador && (
+                                      <p className="text-gray-500">👤 {payment.nomePagador}</p>
+                                    )}
+                                    {payment.cpfPagador && (
+                                      <p className="text-gray-500">🆔 {formatCPF(payment.cpfPagador)}</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-gray-500">Pagamento não encontrado</p>
+                                )}
+                                
+                                <p className="text-xs text-gray-400 mt-1">
+                                  🕐 {timeAgo}
+                                </p>
+                              </div>
+                              
+                              <button
+                                onClick={() => markAsRead(event.id)}
+                                className="text-gray-400 hover:text-red-500 transition p-1"
+                                title="Marcar como lida"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  {copyEvents.length > 0 && (
+                    <div className="p-3 border-t bg-gray-50">
+                      <button
+                        onClick={clearAllNotifications}
+                        className="w-full text-xs text-gray-600 hover:text-orange-600 font-semibold transition"
+                      >
+                        🗑️ Limpar todas notificações
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <button onClick={onLogout} className="bg-white text-orange-500 px-4 py-2 rounded-lg font-semibold hover:bg-orange-50 transition">
+              Sair
+            </button>
+          </div>
         </div>
-      </div>
+      </div>{/* CONTEÚDO DO ADMIN */}
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">Gerenciar Pagamentos Pix</h2>
             <button onClick={() => setShowForm(!showForm)} className="bg-orange-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-orange-600 transition shadow">+ Novo Pagamento</button>
           </div>
+          
           {showForm && (
             <div className="bg-gradient-to-br from-gray-50 to-orange-50 p-6 rounded-xl mb-6 border-2 border-orange-200">
               <h3 className="font-bold text-lg text-gray-800 mb-4">{formData.id ? 'Editar Pagamento' : 'Criar Novo Pagamento'}</h3>
@@ -597,6 +758,7 @@ const AdminPanel = ({ onLogout, authToken, loadPayments }) => {
               </div>
             </div>
           )}
+          
           <div className="space-y-3">
             {payments.length === 0 ? (
               <div className="text-center py-12">
